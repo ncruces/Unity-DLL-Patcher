@@ -20,8 +20,6 @@ namespace PatchDlls
                 Environment.GetFolderPath(Environment.SpecialFolder.Windows),
                 "Microsoft.NET", "Framework", "v2.0.50727", "ilasm.exe");
 
-            var assemblyName = Path.GetFileNameWithoutExtension(args[0]);
-
             Run(ILDASM, "\"{0}\" /nobar /out=disasm.il", args[0]);
             var source = File.ReadAllText("disasm.il");
             var builder = new StringBuilder();
