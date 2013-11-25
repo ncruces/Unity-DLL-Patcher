@@ -12,16 +12,13 @@ namespace PatchDlls
     {
         static void Main(string[] args)
         {
-            var ILDASM = Path.Combine(
-                Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows", "CurrentInstallFolder", "") as string,
-                "Bin", "ildasm.exe");
+            var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            var res = Path.ChangeExtension(path, "res");
+            var il = Path.ChangeExtension(path, "il");
+            var assembly = args[0];
 
-            var ILASM = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                "Microsoft.NET", "Framework", "v2.0.50727", "ilasm.exe");
-
-            Run(ILDASM, "\"{0}\" /nobar /out=disasm.il", args[0]);
-            var source = File.ReadAllText("disasm.il");
+            Ildasm(assembly, il);
+            var source = File.ReadAllText(il);
             var builder = new StringBuilder();
 
             source = PatchInterlockedExchange(source);
@@ -47,11 +44,29 @@ namespace PatchDlls
                 }
             }
 
-            File.WriteAllText("disasm.il", source);
-            Run(ILASM, "disasm.il /resource=disasm.res /dll /out=\"{0}\"", args[0]);
+            File.WriteAllText(il, source);
+            Ilasm(il, res, assembly);
 
-            File.Delete("disasm.il");
-            File.Delete("disasm.res");
+            File.Delete(il);
+            File.Delete(res);
+        }
+
+        static void Ilasm(string il, string res, string assembly)
+        {
+            var ilasm = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
+                "Microsoft.NET", "Framework", "v2.0.50727", "ilasm.exe");
+
+            Run(ilasm, "\"{0}\" /resource=\"{1}\" /out=\"{2}\" {3}", il, res, assembly, Path.GetExtension(assembly).Replace('.', '/'));
+        }
+
+        static void Ildasm(string assembly, string il)
+        {
+            var ildasm = Path.Combine(
+                Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows", "CurrentInstallFolder", "") as string,
+                "Bin", "ildasm.exe");
+
+            Run(ildasm, "\"{0}\" /linenum /typelist /nobar /out=\"{1}\"", assembly, il);
         }
 
         static void Run(string fileName, string format, params object[] args)
@@ -59,7 +74,7 @@ namespace PatchDlls
             Process.Start(new ProcessStartInfo
             {
                 FileName = fileName,
-                Arguments =  string.Format(format, args),
+                Arguments = string.Format(format, args),
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
             }).WaitForExit();
