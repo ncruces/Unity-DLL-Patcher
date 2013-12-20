@@ -26,7 +26,7 @@ namespace PatchDlls
 
             if (args.Length > 1)
             {
-                foreach (var file in Directory.EnumerateFiles(args[1], "*.il"))
+                foreach (var file in Directory.EnumerateFiles(args[1], "*.il", SearchOption.AllDirectories))
                 {
                     var patch = File.ReadAllLines(file);
 
