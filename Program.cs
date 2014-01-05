@@ -104,11 +104,17 @@ namespace PatchDlls
 
         static DebuggableAttribute GetDebuggableAttribute(string source)
         {
+            var flags = DebuggableAttribute.DebuggingModes.Default;
             var match = Regex.Match(source,
                 @".custom instance void \[mscorlib\]System.Diagnostics.DebuggableAttribute::.ctor\(valuetype \[mscorlib\]System.Diagnostics.DebuggableAttribute/DebuggingModes\) = " +
                 @"\( (..) (..) (..) (..) (..) (..) (..) (..) \)");
-            var builder = match.Groups.Cast<Group>().Skip(1).Reverse().Aggregate(new StringBuilder(16), (s, g) => s.Append(g.Value));
-            return new DebuggableAttribute((DebuggableAttribute.DebuggingModes)Convert.ToInt64(builder.ToString()));
+
+            if (match.Success)
+            {
+                var builder = match.Groups.Cast<Group>().Skip(1).Reverse().Aggregate(new StringBuilder(16), (s, g) => s.Append(g.Value));
+                flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(builder.ToString());
+            }
+            return new DebuggableAttribute(flags);
         }
 
         static string PatchInterlockedExchange(string source)
