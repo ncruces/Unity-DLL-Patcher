@@ -93,13 +93,15 @@ namespace PatchDlls
 
         static void Run(string fileName, string format, params object[] args)
         {
-            Process.Start(new ProcessStartInfo
+            var proc = Process.Start(new ProcessStartInfo
             {
                 FileName = fileName,
                 Arguments = string.Format(format, args),
                 WindowStyle = ProcessWindowStyle.Hidden,
                 CreateNoWindow = true,
-            }).WaitForExit();
+            });
+            proc.WaitForExit();
+            if (proc.ExitCode != 0) Environment.Exit(proc.ExitCode);
         }
 
         static DebuggableAttribute GetDebuggableAttribute(string source)
@@ -111,8 +113,8 @@ namespace PatchDlls
 
             if (match.Success)
             {
-                var builder = match.Groups.Cast<Group>().Skip(1).Reverse().Aggregate(new StringBuilder(16), (s, g) => s.Append(g.Value));
-                flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(builder.ToString());
+                var number = string.Join(string.Empty, match.Groups.Cast<Group>().Skip(1).Reverse());
+                flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(number);
             }
             return new DebuggableAttribute(flags);
         }
@@ -120,7 +122,7 @@ namespace PatchDlls
         static string PatchInterlockedExchange(string source)
         {
             return Regex.Replace(source,
-                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::Exchange<.*?>\(.*?\)",
+                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::Exchange<[^>]*>\([^)]*\)",
                 "object [mscorlib]System.Threading.Interlocked::Exchange(object&, object)",
                 RegexOptions.Singleline);
         }
@@ -128,7 +130,7 @@ namespace PatchDlls
         static string PatchInterlockedCompareExchange(string source)
         {
             return Regex.Replace(source,
-                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::CompareExchange<.*?>\(.*?\)",
+                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::CompareExchange<[^>]*>\([^)]*\)",
                 "object [mscorlib]System.Threading.Interlocked::CompareExchange(object&, object, object)",
                 RegexOptions.Singleline);
         }
