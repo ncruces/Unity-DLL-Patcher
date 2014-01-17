@@ -122,7 +122,7 @@ namespace PatchDlls
         static string PatchInterlockedExchange(string source)
         {
             return Regex.Replace(source,
-                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::Exchange<[^>]*>\([^)]*\)",
+                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::Exchange<[^()]+>\([^()]+\)",
                 "object [mscorlib]System.Threading.Interlocked::Exchange(object&, object)",
                 RegexOptions.Singleline);
         }
@@ -130,7 +130,7 @@ namespace PatchDlls
         static string PatchInterlockedCompareExchange(string source)
         {
             return Regex.Replace(source,
-                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::CompareExchange<[^>]*>\([^)]*\)",
+                @"!!0 \[mscorlib\]System\.Threading\.Interlocked::CompareExchange<[^()]+>\([^()]+\)",
                 "object [mscorlib]System.Threading.Interlocked::CompareExchange(object&, object, object)",
                 RegexOptions.Singleline);
         }
