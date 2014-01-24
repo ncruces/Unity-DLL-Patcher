@@ -62,15 +62,30 @@ namespace PatchDlls
             var args = Path.GetExtension(assembly).Replace('.', '/');
 
             // Debugging
-            if (debug.IsJITOptimizerDisabled)
+            if (File.Exists(Path.ChangeExtension(assembly, "pdb")))
             {
-                args += debug.DebuggingFlags.HasFlag(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints) ?
-                    " /debug=impl" :
-                    " /debug";
-            }
-            else if (debug.DebuggingFlags.HasFlag(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints))
-            {
-                args += " /debug=opt";
+                if (debug.IsJITOptimizerDisabled)
+                {
+                    if (debug.DebuggingFlags.HasFlag(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints))
+                    {
+                        args += " /debug=impl";
+                    }
+                    else
+                    {
+                        args += " /debug";
+                    }
+                }
+                else
+                {
+                    if (debug.DebuggingFlags.HasFlag(DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints))
+                    {
+                        args += " /debug=opt";
+                    }
+                    else
+                    {
+                        args += " /pdb";
+                    }
+                }
             }
 
             // Optimization
@@ -106,7 +121,7 @@ namespace PatchDlls
 
         static DebuggableAttribute GetDebuggableAttribute(string source)
         {
-            var flags = DebuggableAttribute.DebuggingModes.Default;
+            var flags = DebuggableAttribute.DebuggingModes.None;
             var match = Regex.Match(source,
                 @".custom instance void \[mscorlib\]System.Diagnostics.DebuggableAttribute::.ctor\(valuetype \[mscorlib\]System.Diagnostics.DebuggableAttribute/DebuggingModes\) = " +
                 @"\( (..) (..) (..) (..) (..) (..) (..) (..) \)");
@@ -114,7 +129,7 @@ namespace PatchDlls
             if (match.Success)
             {
                 var number = string.Join(string.Empty, match.Groups.Cast<Group>().Skip(1).Reverse());
-                flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(number);
+                flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(number, 16);
             }
             return new DebuggableAttribute(flags);
         }
