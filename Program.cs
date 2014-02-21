@@ -20,13 +20,16 @@ namespace PatchDlls
             Ildasm(assembly, il);
             var source = File.ReadAllText(il);
             var debug = GetDebuggableAttribute(source);
-            var builder = new StringBuilder();
 
+            source = PatchIEnumConstraint(source);
+            source = PatchDelegateConstraint(source);
+            source = PatchArrayConstraint(source);
             source = PatchInterlockedExchange(source);
             source = PatchInterlockedCompareExchange(source);
 
             if (args.Length > 1)
             {
+                var builder = new StringBuilder();
                 foreach (var file in Directory.EnumerateFiles(args[1], "*.il", SearchOption.AllDirectories))
                 {
                     var patch = File.ReadAllLines(file);
@@ -132,6 +135,30 @@ namespace PatchDlls
                 flags = (DebuggableAttribute.DebuggingModes)Convert.ToInt64(number, 16);
             }
             return new DebuggableAttribute(flags);
+        }
+
+        static string PatchIEnumConstraint(string source)
+        {
+            return Regex.Replace(source,
+                @"valuetype \.ctor \(\[mscorlib\]System\.ValueType, (\[BeeNET\])?System\.IEnumConstraint\)",
+                "valuetype .ctor ([mscorlib]System.Enum)",
+                RegexOptions.Singleline);
+        }
+
+        static string PatchDelegateConstraint(string source)
+        {
+            return Regex.Replace(source,
+                @"\((\[BeeNET\])?System\.DelegateConstraint\)",
+                "([mscorlib]System.Delegate)",
+                RegexOptions.Singleline);
+        }
+
+        static string PatchArrayConstraint(string source)
+        {
+            return Regex.Replace(source,
+                @"\((\[BeeNET\])?System\.ArrayConstraint\)",
+                "([mscorlib]System.Array)",
+                RegexOptions.Singleline);
         }
 
         static string PatchInterlockedExchange(string source)
