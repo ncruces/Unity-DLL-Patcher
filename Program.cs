@@ -1,4 +1,4 @@
-﻿using Microsoft.Win32;
+﻿using Microsoft.Build.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -58,9 +58,7 @@ namespace PatchDlls
 
         static void Ilasm(string il, string res, string assembly, DebuggableAttribute debug)
         {
-            var ilasm = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.Windows),
-                "Microsoft.NET", "Framework", "v2.0.50727", "ilasm.exe");
+            var ilasm = ToolLocationHelper.GetPathToDotNetFrameworkFile("ilasm.exe", TargetDotNetFrameworkVersion.Version20);
 
             // DLL or EXE
             var args = Path.GetExtension(assembly).Replace('.', '/');
@@ -103,10 +101,7 @@ namespace PatchDlls
 
         static void Ildasm(string assembly, string il)
         {
-            var ildasm = Path.Combine(
-                Registry.GetValue(@"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Microsoft SDKs\Windows\v7.0A\WinSDK-NetFx35Tools", "InstallationFolder", "") as string,
-                "ildasm.exe");
-
+            var ildasm = ToolLocationHelper.GetPathToDotNetFrameworkSdkFile("ildasm.exe", TargetDotNetFrameworkVersion.VersionLatest);
             Run(ildasm, "\"{0}\" /linenum /typelist /nobar /out=\"{1}\"", assembly, il);
         }
 
