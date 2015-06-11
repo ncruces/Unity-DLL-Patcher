@@ -56,6 +56,7 @@ namespace PatchDlls
             File.Delete(res);
         }
 
+        // Assembler
         static void Ilasm(string il, string res, string assembly, DebuggableAttribute debug)
         {
             var ilasm = ToolLocationHelper.GetPathToDotNetFrameworkFile("ilasm.exe", TargetDotNetFrameworkVersion.Version20);
@@ -99,6 +100,7 @@ namespace PatchDlls
             Run(ilasm, "\"{0}\" /noautoinherit /resource=\"{1}\" /out=\"{2}\" {3}", il, res, assembly, args);
         }
 
+        // Disassembler
         static void Ildasm(string assembly, string il)
         {
             var ildasm = ToolLocationHelper.GetPathToDotNetFrameworkSdkFile("ildasm.exe", TargetDotNetFrameworkVersion.VersionLatest);
@@ -136,7 +138,7 @@ namespace PatchDlls
         static string PatchIEnumConstraint(string source)
         {
             return Regex.Replace(source,
-                @"valuetype \.ctor \(\[mscorlib\]System\.ValueType, (\[BeeNET\])?System\.IEnumConstraint\)",
+                @"valuetype \.ctor \(\[mscorlib\]System\.ValueType, (\[[^]]+\])?System\.IEnumConstraint\)",
                 "valuetype .ctor ([mscorlib]System.Enum)",
                 RegexOptions.Singleline);
         }
@@ -144,7 +146,7 @@ namespace PatchDlls
         static string PatchDelegateConstraint(string source)
         {
             return Regex.Replace(source,
-                @"\((\[BeeNET\])?System\.DelegateConstraint\)",
+                @"\((\[[^]]+\])?System\.DelegateConstraint\)",
                 "([mscorlib]System.Delegate)",
                 RegexOptions.Singleline);
         }
@@ -152,7 +154,7 @@ namespace PatchDlls
         static string PatchArrayConstraint(string source)
         {
             return Regex.Replace(source,
-                @"\((\[BeeNET\])?System\.ArrayConstraint\)",
+                @"\((\[[^]]+\])?System\.ArrayConstraint\)",
                 "([mscorlib]System.Array)",
                 RegexOptions.Singleline);
         }
