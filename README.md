@@ -30,4 +30,4 @@ We use this as a post-build step in all our Visual Studio projects:
 
 ### Custom *.il patches ###
 
-Custom patches are IL files. The first and last file are matched exactly within the disassembled IL. If a match is found, everything in between is replaced by the IL file contents.
+Custom patches are IL files. The first and last line in the file are matched exactly within the disassembled IL. If a match is found, everything in between is replaced by the IL file contents.

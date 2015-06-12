@@ -26,7 +26,6 @@ namespace PatchDlls
             source = PatchArrayConstraint(source);
             source = PatchInterlockedExchange(source);
             source = PatchInterlockedCompareExchange(source);
-            source = PatchPermissionSet(source);
 
             if (args.Length > 1)
             {
@@ -172,13 +171,6 @@ namespace PatchDlls
             return Regex.Replace(source,
                 @"!!0 \[mscorlib\]System\.Threading\.Interlocked::CompareExchange<[^()]+>\([^()]+\)",
                 "object [mscorlib]System.Threading.Interlocked::CompareExchange(object&, object, object)",
-                RegexOptions.Singleline);
-        }
-
-        static string PatchPermissionSet(string source)
-        {
-            return Regex.Replace(source,
-                @"call +void \[mscorlib\]System.Security.PermissionSet::RevertAssert\(\)", string.Empty,
                 RegexOptions.Singleline);
         }
     }
