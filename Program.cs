@@ -136,10 +136,15 @@ namespace PatchDlls
 
         static string PatchIEnumConstraint(string source)
         {
-            return Regex.Replace(source,
+            source = Regex.Replace(source,
                 @"valuetype \.ctor \(\[mscorlib\]System\.ValueType, (\[[^]]+\])?System\.IEnumConstraint\)",
                 "valuetype .ctor ([mscorlib]System.Enum)",
                 RegexOptions.Singleline);
+            source = Regex.Replace(source,
+                @"valuetype \.ctor \((\[[^]]+\])?System\.IEnumConstraint, \[mscorlib\]System\.ValueType\)",
+                "valuetype .ctor ([mscorlib]System.Enum)",
+                RegexOptions.Singleline);
+            return source;
         }
 
         static string PatchDelegateConstraint(string source)
